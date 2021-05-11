@@ -1,9 +1,26 @@
+/*
+ * Copyright (C) 2021 by Manolo Müller
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "smartglove.h"
 
 void ext_main(void *r){
 	t_class *c;
 	c = class_new("smartglove", (method)smartglove_new, NULL, sizeof(t_smartglove), 0L, A_GIMME, 0);
-	class_addmethod(c, (method)smartglove_assist,	"assist",	A_CANT, 0);
+    class_addmethod(c, (method)smartglove_assist,	"assist",	A_CANT, 0);
     class_addmethod(c, (method)smartglove_int, "int", A_LONG, 0);
     class_addmethod(c, (method)clear_buffer, "clear", A_CANT, 0);
     class_register(CLASS_BOX, c);

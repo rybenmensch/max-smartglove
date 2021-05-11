@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2FBBEAD608F335360078DB84"
-               BuildableName = "jXserial.mxo"
+               BuildableName = "smartglove.mxo"
                BlueprintName = "max-external"
                ReferencedContainer = "container:smartglove.xcodeproj">
             </BuildableReference>
@@ -49,7 +49,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2FBBEAD608F335360078DB84"
-            BuildableName = "jXserial.mxo"
+            BuildableName = "smartglove.mxo"
             BlueprintName = "max-external"
             ReferencedContainer = "container:smartglove.xcodeproj">
          </BuildableReference>
@@ -65,7 +65,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2FBBEAD608F335360078DB84"
-            BuildableName = "jXserial.mxo"
+            BuildableName = "smartglove.mxo"
             BlueprintName = "max-external"
             ReferencedContainer = "container:smartglove.xcodeproj">
          </BuildableReference>

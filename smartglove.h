@@ -40,6 +40,7 @@ void parse_digital(t_smartglove *x);
 void parse_analog(t_smartglove *x);
 void clear_buffer(t_smartglove *x);
 void output(t_smartglove *x, t_symbol *prepend, t_symbol *msg, long val);
+void outputf(t_smartglove *x, t_symbol *prepend, t_symbol *msg, float val);
 void smartglove_assist(t_smartglove *x, void *b, long m, long a, char *s);
 t_class *smartglove_class;
 

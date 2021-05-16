@@ -33,7 +33,7 @@ void *smartglove_new(t_symbol *s, long argc, t_atom *argv){
     x->outlet = outlet_new((t_object *)x, NULL);
     memset(x->buffer, 0, sizeof(unsigned char) * MAX_LEN);
     x->count = 0;
-    
+
     d_sym = gensym("digital");
     a_sym = gensym("analog");
     i_sym = gensym("information");
@@ -46,7 +46,7 @@ void *smartglove_new(t_symbol *s, long argc, t_atom *argv){
     for(int i=0;i<S_ANALOG;i++){
         analog_sym[i] = gensym(analog_names[i]);
     }
-    
+
     return(x);
 }
 
@@ -56,31 +56,31 @@ void smartglove_int(t_smartglove *x, long a){
     }else{
         uint8_t temp[MAX_LEN];
         memcpy(temp, x->buffer, sizeof(uint8_t) * MAX_LEN);
-        
+
         for(int i=0;i<MAX_LEN-1;i++){
             x->buffer[i] = temp[i+1];
         }
         x->buffer[MAX_LEN-1] = a;
     }
-    
+
     int length = 0;
     uint8_t type = 0;
     if(x->buffer[0] == M_START){
         type = x->buffer[1];
-        
+
         if(!(type==M_INFORMATION || type==M_DIGITAL || type==M_ANALOG)){
             return;
         }
 
         length = x->buffer[2];
-        
+
         if(length>MAX_LEN){
             return;
         }else if(x->buffer[length-1] != M_END){
             return;
         }
     }
-    
+
     switch(type){
         case M_INFORMATION:
             parse_information(x);
@@ -111,7 +111,7 @@ void parse_information(t_smartglove *x){
 
     }
     outlet_list(x->outlet, NULL, 3, (t_atom*)&devtype);
-    
+
     int fw_major    = x->buffer[OFFSET+1];
     int fw_minor    = x->buffer[OFFSET+2];
     t_atom firmware[4];
@@ -131,7 +131,8 @@ void parse_digital(t_smartglove *x){
 void parse_analog(t_smartglove *x){
     for(int i=0;i<S_ANALOG*2;i+=2){
         int val = (x->buffer[i+3]<<8) + x->buffer[i+1+OFFSET];
-        output(x, a_sym, gensym(analog_names[i/2]), val);
+        float fval = ((float)val) / UINT16_MAX;
+        outputf(x, a_sym, gensym(analog_names[i/2]), fval);
     }
 }
 
@@ -148,6 +149,14 @@ void output(t_smartglove *x, t_symbol *prepend, t_symbol *msg, long val){
     outlet_list(x->outlet, NULL, 3, (t_atom*)&a_out);
 }
 
+void outputf(t_smartglove *x, t_symbol *prepend, t_symbol *msg, float val){
+   t_atom a_out[3];
+    atom_setsym(a_out, prepend);
+    atom_setsym(a_out+1, msg);
+    atom_setfloat(a_out+2, val);
+    outlet_list(x->outlet, NULL, 3, (t_atom*)&a_out);
+}
+
 void smartglove_assist(t_smartglove *x, void *b, long m, long a, char *s){
     if(m==1){
         sprintf(s, "Serial connection in");
@@ -155,3 +164,4 @@ void smartglove_assist(t_smartglove *x, void *b, long m, long a, char *s){
         sprintf(s, "Messages out");
     }
 }
+

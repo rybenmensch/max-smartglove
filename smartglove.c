@@ -23,7 +23,12 @@ void ext_main(void *r){
     class_addmethod(c, (method)smartglove_assist,	"assist",	A_CANT, 0);
     class_addmethod(c, (method)smartglove_int, "int", A_LONG, 0);
     class_addmethod(c, (method)clear_buffer, "clear", A_CANT, 0);
-    class_register(CLASS_BOX, c);
+
+	CLASS_ATTR_SYM(c, "outputmode", 0, t_smartglove, outputmode);
+	CLASS_ATTR_ACCESSORS(c, "outputmode", NULL, smartglove_outputmode_set);
+	CLASS_ATTR_LABEL(c, "outputmode", 0, "Output mode");
+	CLASS_ATTR_ENUM(c, "outputmode", 0, "sensor normalized midi");
+	class_register(CLASS_BOX, c);
 	smartglove_class = c;
 }
 
@@ -46,7 +51,12 @@ void *smartglove_new(t_symbol *s, long argc, t_atom *argv){
     for(int i=0;i<S_ANALOG;i++){
         analog_sym[i] = gensym(analog_names[i]);
     }
+	for(int i=0;i<S_MODES;i++){
+		mode_sym[i] = gensym(mode_names[i]);
+	}
 
+	x->outputmode = mode_sym[0];
+	attr_args_process(x, argc, argv);
     return(x);
 }
 
@@ -165,3 +175,16 @@ void smartglove_assist(t_smartglove *x, void *b, long m, long a, char *s){
     }
 }
 
+t_max_err smartglove_outputmode_set(t_smartglove *x, void *attr, long ac, t_atom *av){
+	if(ac && av){
+		t_symbol *mode = atom_getsym(av);
+		for(int i=0;i<S_MODES;i++){
+			if(mode == mode_sym[i]){
+				x->outputmode = mode;
+				return MAX_ERR_NONE;
+			}
+		}
+		return MAX_ERR_GENERIC;
+	}
+	return MAX_ERR_NONE;
+}

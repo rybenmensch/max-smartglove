@@ -26,11 +26,14 @@
 #define MAX_LEN 26
 #define OFFSET 3    //header of each msg is 3 bytes
 
+//enum OUTMODE {SENSOR=0, NORM, MIDI};
+
 typedef struct _smartglove {
     t_object p_ob;
     void *outlet;
     uint8_t buffer[MAX_LEN];
     int count;
+	t_symbol *outputmode;
 } t_smartglove;
 
 void *smartglove_new(t_symbol *s, long argc, t_atom *argv);
@@ -42,6 +45,9 @@ void clear_buffer(t_smartglove *x);
 void output(t_smartglove *x, t_symbol *prepend, t_symbol *msg, long val);
 void outputf(t_smartglove *x, t_symbol *prepend, t_symbol *msg, float val);
 void smartglove_assist(t_smartglove *x, void *b, long m, long a, char *s);
+//t_max_err smartglove_outputmode_get(t_smartglove *x, void *attr, long ac, t_atom *av);
+t_max_err smartglove_outputmode_set(t_smartglove *x, void *attr, long ac, t_atom *av);
+
 t_class *smartglove_class;
 
 enum{
@@ -102,6 +108,14 @@ const char analog_names[S_ANALOG][100] = {
     "bendmiddle",
     "bendring",
     "bendlittle"
+};
+
+#define S_MODES 3
+t_symbol *mode_sym[S_MODES];
+const char mode_names[S_MODES][100] = {
+	"sensor",
+	"normalized",
+	"midi"
 };
 
 #endif /* smartglove_h */

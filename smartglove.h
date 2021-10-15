@@ -26,7 +26,10 @@
 #define MAX_LEN 26
 #define OFFSET 3    //header of each msg is 3 bytes
 
-//enum OUTMODE {SENSOR=0, NORM, MIDI};
+//maybe?
+typedef struct _circbuff {
+
+} t_circbuff;
 
 typedef struct _smartglove {
     t_object p_ob;
@@ -42,10 +45,8 @@ void parse_information(t_smartglove *x);
 void parse_digital(t_smartglove *x);
 void parse_analog(t_smartglove *x);
 void clear_buffer(t_smartglove *x);
-void output(t_smartglove *x, t_symbol *prepend, t_symbol *msg, long val);
-void outputf(t_smartglove *x, t_symbol *prepend, t_symbol *msg, float val);
+void output(t_smartglove *x, t_symbol *prepend, t_symbol *msg, uint16_t val, int max);
 void smartglove_assist(t_smartglove *x, void *b, long m, long a, char *s);
-//t_max_err smartglove_outputmode_get(t_smartglove *x, void *attr, long ac, t_atom *av);
 t_max_err smartglove_outputmode_set(t_smartglove *x, void *attr, long ac, t_atom *av);
 
 t_class *smartglove_class;
@@ -64,7 +65,7 @@ enum {
 #define S_INFORMATION 4
 t_symbol *information_sym[S_INFORMATION];
 t_symbol *i_sym;
-const char information_names[S_INFORMATION][100] = {
+const char *information_names[S_INFORMATION] = {
     "devicetype",
     "SmartGlove",
     "SmartBall",
@@ -74,7 +75,7 @@ const char information_names[S_INFORMATION][100] = {
 #define S_DIGITAL 16
 t_symbol *digital_sym[S_DIGITAL];
 t_symbol *d_sym;
-const char digital_names[S_DIGITAL][100] = {
+const char *digital_names[S_DIGITAL] = {
     "thumb1",
     "thumb2",
     "thumb3",
@@ -96,7 +97,7 @@ const char digital_names[S_DIGITAL][100] = {
 #define S_ANALOG 11
 t_symbol *analog_sym[S_ANALOG];
 t_symbol *a_sym;
-const char analog_names[S_ANALOG][100] = {
+const char *analog_names[S_ANALOG] = {
     "distance",
     "accelx",
     "accely",
@@ -111,11 +112,16 @@ const char analog_names[S_ANALOG][100] = {
 };
 
 #define S_MODES 3
+enum {
+	M_SENSOR=0,
+	M_MIDI,
+	M_NORMALIZED
+};
 t_symbol *mode_sym[S_MODES];
-const char mode_names[S_MODES][100] = {
+const char *mode_names[S_MODES] = {
 	"sensor",
-	"normalized",
-	"midi"
+	"midi",
+	"normalized"
 };
 
 #endif /* smartglove_h */

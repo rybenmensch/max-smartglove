@@ -27,7 +27,7 @@ void ext_main(void *r){
 	CLASS_ATTR_SYM(c, "outputmode", 0, t_smartglove, outputmode);
 	CLASS_ATTR_ACCESSORS(c, "outputmode", NULL, smartglove_outputmode_set);
 	CLASS_ATTR_LABEL(c, "outputmode", 0, "Output mode");
-	CLASS_ATTR_ENUM(c, "outputmode", 0, "sensor normalized midi");
+	CLASS_ATTR_ENUM(c, "outputmode", 0, "sensor midi normalized");
 	class_register(CLASS_BOX, c);
 	smartglove_class = c;
 }
@@ -36,9 +36,12 @@ void *smartglove_new(t_symbol *s, long argc, t_atom *argv){
     t_smartglove *x;
     x = (t_smartglove *)object_alloc(smartglove_class);
     x->outlet = outlet_new((t_object *)x, NULL);
-    memset(x->buffer, 0, sizeof(unsigned char) * MAX_LEN);
+
+	//initialize the buffer
+	memset(x->buffer, 0, sizeof(unsigned char) * MAX_LEN);
     x->count = 0;
 
+	//initialize and assign symbols
     d_sym = gensym("digital");
     a_sym = gensym("analog");
     i_sym = gensym("information");
@@ -55,12 +58,14 @@ void *smartglove_new(t_symbol *s, long argc, t_atom *argv){
 		mode_sym[i] = gensym(mode_names[i]);
 	}
 
-	x->outputmode = mode_sym[0];
+	x->outputmode = mode_sym[M_NORMALIZED];
 	attr_args_process(x, argc, argv);
     return(x);
 }
 
+//COMMENT THIS METHOD !!
 void smartglove_int(t_smartglove *x, long a){
+	//fill circular buffer
     if(x->count<MAX_LEN){
         x->buffer[x->count++] = a;
     }else{
@@ -102,8 +107,7 @@ void smartglove_int(t_smartglove *x, long a){
             parse_analog(x);
             break;
         default:
-            ;
-            //nothing happens
+            ;	//nothing happens
     }
 }
 
@@ -134,15 +138,15 @@ void parse_information(t_smartglove *x){
 
 void parse_digital(t_smartglove *x){
     for(int i=0;i<S_DIGITAL;i++){
-        output(x, d_sym, digital_sym[i], x->buffer[i+OFFSET]);
+		uint8_t ival = x->buffer[i+OFFSET];
+		output(x, d_sym, digital_sym[i], ival, 1);
     }
 }
 
 void parse_analog(t_smartglove *x){
     for(int i=0;i<S_ANALOG*2;i+=2){
-        int val = (x->buffer[i+3]<<8) + x->buffer[i+1+OFFSET];
-        float fval = ((float)val) / UINT16_MAX;
-        outputf(x, a_sym, gensym(analog_names[i/2]), fval);
+        uint16_t val = (x->buffer[i+3]<<8) + x->buffer[i+1+OFFSET];
+        output(x, a_sym, gensym(analog_names[i/2]), val, UINT16_MAX);
     }
 }
 
@@ -151,20 +155,23 @@ void clear_buffer(t_smartglove *x){
     x->count = 0;
 }
 
-void output(t_smartglove *x, t_symbol *prepend, t_symbol *msg, long val){
-   t_atom a_out[3];
+void output(t_smartglove *x, t_symbol *prepend, t_symbol *msg, uint16_t ival, int max){
+	//set our msgtype and sensor/button name
+	t_atom a_out[3];
     atom_setsym(a_out, prepend);
     atom_setsym(a_out+1, msg);
-    atom_setlong(a_out+2, val);
-    outlet_list(x->outlet, NULL, 3, (t_atom*)&a_out);
-}
 
-void outputf(t_smartglove *x, t_symbol *prepend, t_symbol *msg, float val){
-   t_atom a_out[3];
-    atom_setsym(a_out, prepend);
-    atom_setsym(a_out+1, msg);
-    atom_setfloat(a_out+2, val);
-    outlet_list(x->outlet, NULL, 3, (t_atom*)&a_out);
+	if(x->outputmode == mode_sym[M_NORMALIZED]){
+		double fval = (double)ival;
+		fval /= max;
+		atom_setfloat(a_out+2, fval);
+	}else{
+		if(x->outputmode == mode_sym[M_MIDI]){
+			ival = ival >> 9;
+		}
+		atom_setlong(a_out+2, ival);
+	}
+	outlet_list(x->outlet, NULL, 3, (t_atom*)&a_out);
 }
 
 void smartglove_assist(t_smartglove *x, void *b, long m, long a, char *s){
@@ -178,12 +185,15 @@ void smartglove_assist(t_smartglove *x, void *b, long m, long a, char *s){
 t_max_err smartglove_outputmode_set(t_smartglove *x, void *attr, long ac, t_atom *av){
 	if(ac && av){
 		t_symbol *mode = atom_getsym(av);
+		//check if sym is one of our defined modes
 		for(int i=0;i<S_MODES;i++){
 			if(mode == mode_sym[i]){
 				x->outputmode = mode;
 				return MAX_ERR_NONE;
 			}
 		}
+		//if it isn't, do nothing
+		//default value is set in _new, maybe here to make it more explicit?
 		return MAX_ERR_GENERIC;
 	}
 	return MAX_ERR_NONE;

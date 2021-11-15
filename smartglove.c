@@ -38,8 +38,7 @@ void *smartglove_new(t_symbol *s, long argc, t_atom *argv){
     x->outlet = outlet_new((t_object *)x, NULL);
 
 	//initialize the buffer
-	memset(x->buffer, 0, sizeof(unsigned char) * MAX_LEN);
-    x->count = 0;
+	clear_buffer(x);
 
 	//initialize and assign symbols
     d_sym = gensym("digital");
@@ -119,10 +118,8 @@ void parse_information(t_smartglove *x){
 
     if(device_type == D_SMARTGLOVE){
         atom_setsym(devtype+2, information_sym[1]);
-
     }else if(device_type == D_SMARTBALL){
         atom_setsym(devtype+2, information_sym[2]);
-
     }
     outlet_list(x->outlet, NULL, 3, (t_atom*)&devtype);
 
@@ -162,11 +159,18 @@ void output(t_smartglove *x, t_symbol *prepend, t_symbol *msg, uint16_t ival, in
     atom_setsym(a_out+1, msg);
 
 	if(x->outputmode == mode_sym[M_NORMALIZED]){
-		double fval = (double)ival;
-		fval /= max;
-		atom_setfloat(a_out+2, fval);
+		//dumb hack exclusively for buttons (maybe make them have their own methods?
+		if(max==1){
+			atom_setlong(a_out+2, ival);
+		}else{
+			//scale [0..max]->[0..1]
+			double fval = (double)ival;
+			fval /= max;
+			atom_setfloat(a_out+2, fval);
+		}
 	}else{
 		if(x->outputmode == mode_sym[M_MIDI]){
+			//squeeze into 7bit-int
 			ival = ival >> 9;
 		}
 		atom_setlong(a_out+2, ival);

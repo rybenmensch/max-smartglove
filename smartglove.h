@@ -51,13 +51,13 @@ t_max_err smartglove_outputmode_set(t_smartglove *x, void *attr, long ac, t_atom
 
 t_class *smartglove_class;
 
-enum{
+typedef enum {
     M_INFORMATION   = 73,
     M_DIGITAL       = 68,
     M_ANALOG        = 65
 }messagetype;
 
-enum {
+typedef enum {
     D_SMARTGLOVE    = 71,
     D_SMARTBALL     = 66
 }devicetype;
@@ -112,11 +112,11 @@ const char *analog_names[S_ANALOG] = {
 };
 
 #define S_MODES 3
-enum {
+typedef enum {
 	M_SENSOR=0,
 	M_MIDI,
 	M_NORMALIZED
-};
+} outputmodes;
 t_symbol *mode_sym[S_MODES];
 const char *mode_names[S_MODES] = {
 	"sensor",
